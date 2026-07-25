@@ -1,0 +1,71 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated"
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+enum UserRole {
+  USER
+  ADMIN
+  MANAGER
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String   @unique
+  password  String
+  role UserRole @default(USER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Customer {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String?
+  phone     String?
+  address   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  salesChallans SalesChallan[]
+}
+
+model Product {
+  id          Int      @id @default(autoincrement())
+  name        String
+  sku         String   @unique
+  description String?
+  price       Decimal  @db.Decimal(10, 2)
+  stock       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  challanItems SalesChallanItem[]
+}
+
+model SalesChallan {
+  id         Int      @id @default(autoincrement())
+  challanNo  String   @unique
+  customerId Int
+  total      Decimal  @db.Decimal(10, 2)
+  createdAt  DateTime @default(now())
+
+  customer Customer             @relation(fields: [customerId], references: [id])
+  items    SalesChallanItem[]
+}
+
+model SalesChallanItem {
+  id             Int      @id @default(autoincrement())
+  challanId      Int
+  productId      Int
+  quantity       Int
+  price          Decimal  @db.Decimal(10, 2)
+
+  challan SalesChallan @relation(fields: [challanId], references: [id])
+  product Product      @relation(fields: [productId], references: [id])
+}
